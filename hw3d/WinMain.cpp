@@ -116,13 +116,15 @@ int nCmdShow)
 		featureLevels, 2, D3D11_SDK_VERSION, &swapDesc, &swapChain, &d3dDevice, NULL,
 		&d3dDeviceContext);
 
-	//**************TEST LOOP******************
+	//**************DRAWING TEST******************
 
 	swapChain->GetBuffer(0, __uuidof(ID3D11Resource), (void**)&backBuffer);
 	d3dDevice->CreateRenderTargetView(backBuffer, nullptr, &renderTarget);
 	float rgbaTest[] = { 0.5f, 0.25f, 0.5f, 1.0f };
 	d3dDeviceContext->ClearRenderTargetView(renderTarget, rgbaTest);
 	EndFrame(swapChain);
+
+	//**************END TEST*******************
 
 	// message pump
 	MSG msg;
