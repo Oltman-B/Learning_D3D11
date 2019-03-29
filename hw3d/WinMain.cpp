@@ -92,7 +92,7 @@ int nCmdShow)
 	// handle creation flags for device context
 	UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #if defined(_DEBUG)
-	// Enable debug layer in debug mode
+	// Enable debug layer in debug mode.
 		creationFlags |= D3D10_CREATE_DEVICE_DEBUG;
 #endif
 	IDXGISwapChain *swapChain;
