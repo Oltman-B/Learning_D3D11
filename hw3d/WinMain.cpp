@@ -27,6 +27,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
+// Present back buffer.
+void EndFrame(IDXGISwapChain *swapChain)
+{
+	swapChain->Present(1u, 0u);
+}
+
 int CALLBACK WinMain(
 HINSTANCE hInstance,
 HINSTANCE hPrevInstance,
@@ -62,14 +68,14 @@ int nCmdShow)
 	ShowWindow(hWnd, SW_SHOW);
 
 	DXGI_RATIONAL refreshRate = { 0 };
-	refreshRate.Numerator = 60;
-	refreshRate.Denominator = 1;
+	refreshRate.Numerator = 0;
+	refreshRate.Denominator = 0;
 
 	DXGI_MODE_DESC modeDesc = { 0 };
 	modeDesc.Width = 0;
 	modeDesc.Height = 0;
 	modeDesc.RefreshRate = refreshRate;
-	modeDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	modeDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	modeDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	modeDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
@@ -81,10 +87,10 @@ int nCmdShow)
 	swapDesc.BufferDesc = modeDesc;
 	swapDesc.SampleDesc = sampleDesc;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapDesc.BufferCount = 2;
+	swapDesc.BufferCount = 1; // 1 front and 1 back buffer.
 	swapDesc.OutputWindow = hWnd;
 	swapDesc.Windowed = TRUE;
-	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	swapDesc.Flags = 0;
 
 	// handle creation flags for device context
@@ -107,11 +113,8 @@ int nCmdShow)
 		featureLevels, 2, D3D11_SDK_VERSION, &swapDesc, &swapChain, &d3dDevice, NULL,
 		&d3dDeviceContext);
 
-	d3dDevice->AddRef();
-	d3dDeviceContext->AddRef();
-	swapChain->AddRef();
-
 	//Compile shaders
+	EndFrame(swapChain);
 
 	// message pump
 	MSG msg;
@@ -124,16 +127,34 @@ int nCmdShow)
 
 	if (gResult == -1)
 	{
-		d3dDevice->Release();
-		d3dDeviceContext->Release();
-		swapChain->Release();
+		if (d3dDevice != nullptr)
+		{
+			d3dDevice->Release();
+		}
+		if (d3dDeviceContext != nullptr)
+		{
+			d3dDeviceContext->Release();
+		}
+		if (d3dDevice != nullptr)
+		{
+			swapChain->Release();
+		}
 		return -1;		
 	}
 	else
 	{
-		d3dDevice->Release();
-		d3dDeviceContext->Release();
-		swapChain->Release();
+		if (d3dDevice != nullptr)
+		{
+			d3dDevice->Release();
+		}
+		if (d3dDeviceContext != nullptr)
+		{
+			d3dDeviceContext->Release();
+		}
+		if (d3dDevice != nullptr)
+		{
+			swapChain->Release();
+		}
 		return msg.wParam;
 	}	
 }
