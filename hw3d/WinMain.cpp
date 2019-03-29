@@ -103,6 +103,9 @@ int nCmdShow)
 	ID3D11Device *d3dDevice;
 	ID3D11DeviceContext *d3dDeviceContext;
 
+	ID3D11Resource *backBuffer = nullptr;
+	ID3D11RenderTargetView *renderTarget = nullptr;
+
 	const D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0,
@@ -113,7 +116,12 @@ int nCmdShow)
 		featureLevels, 2, D3D11_SDK_VERSION, &swapDesc, &swapChain, &d3dDevice, NULL,
 		&d3dDeviceContext);
 
-	//Compile shaders
+	//**************TEST LOOP******************
+
+	swapChain->GetBuffer(0, __uuidof(ID3D11Resource), (void**)&backBuffer);
+	d3dDevice->CreateRenderTargetView(backBuffer, nullptr, &renderTarget);
+	float rgbaTest[] = { 0.5f, 0.25f, 0.5f, 1.0f };
+	d3dDeviceContext->ClearRenderTargetView(renderTarget, rgbaTest);
 	EndFrame(swapChain);
 
 	// message pump
@@ -139,6 +147,14 @@ int nCmdShow)
 		{
 			swapChain->Release();
 		}
+		if (backBuffer != nullptr)
+		{
+			backBuffer->Release();
+		}
+		if (renderTarget != nullptr)
+		{
+			renderTarget->Release();
+		}
 		return -1;		
 	}
 	else
@@ -154,6 +170,14 @@ int nCmdShow)
 		if (d3dDevice != nullptr)
 		{
 			swapChain->Release();
+		}
+		if (backBuffer != nullptr)
+		{
+			backBuffer->Release();
+		}
+		if (renderTarget != nullptr)
+		{
+			renderTarget->Release();
 		}
 		return msg.wParam;
 	}	
