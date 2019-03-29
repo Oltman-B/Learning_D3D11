@@ -1,9 +1,7 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <d3dcommon.h>
-#include <d3dcompiler.h>
-#include <stdio.h>
-#pragma comment(lib,"d3dcompiler.lib")
+
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
