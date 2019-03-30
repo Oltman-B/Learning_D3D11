@@ -2,13 +2,13 @@
 #include <d3d11.h>
 #include <d3dcommon.h>
 
-
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
 	case WM_CLOSE:
-		PostQuitMessage(69);
+		PostQuitMessage(0);
+		msg = WM_QUIT;
 		break;
 	case WM_KEYDOWN:
 		if (wParam == 'F')
@@ -26,11 +26,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
+float FloatPulsatorTest(float changeDelta)
+{
+	static unsigned char count = 0;
+	if (count % 100 == 0)
+	{
+		// Subtract ammount pulsed so far every mod 100 calls
+		changeDelta = (-1 * changeDelta * count);
+		count = 0;
+	}
+	count++;
+	return changeDelta;
+}
 
 // Present back buffer.
 void EndFrame(IDXGISwapChain *swapChain)
 {
 	swapChain->Present(1u, 0u);
+}
+
+void ClearRenderTargetToColor(float r, float g, float b, ID3D11RenderTargetView *rndrTargView, ID3D11DeviceContext *deviceContext)
+{
+	float clearToColor[] = { r, g, b, 1.0f };
+	deviceContext->ClearRenderTargetView(rndrTargView, clearToColor);
 }
 
 int CALLBACK WinMain(
@@ -116,25 +134,34 @@ int nCmdShow)
 		featureLevels, 2, D3D11_SDK_VERSION, &swapDesc, &swapChain, &d3dDevice, NULL,
 		&d3dDeviceContext);
 
-	//**************DRAWING TEST******************
-
+	// Set up render target from back buffer
 	swapChain->GetBuffer(0, __uuidof(ID3D11Resource), (void**)&backBuffer);
 	d3dDevice->CreateRenderTargetView(backBuffer, nullptr, &renderTarget);
-	float rgbaTest[] = { 0.5f, 0.25f, 0.5f, 1.0f };
-	d3dDeviceContext->ClearRenderTargetView(renderTarget, rgbaTest);
-	EndFrame(swapChain);
+	backBuffer->Release(); // Only needed to create render target view. Can be released after creation.
 
-	//**************END TEST*******************
-
-	// message pump
-	MSG msg;
+	MSG msg = { 0 };
 	BOOL gResult;
-	while ((gResult = GetMessage(&msg, nullptr, 0, 0)) > 0)
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
 
+	float pulseColor = 0.0f;
+	//***********************'Game' loop*****************************
+	while (msg.message != WM_QUIT)
+	{
+		// message pump
+		while ((gResult = PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+
+		//**************DRAWING TEST*****************
+
+		pulseColor += FloatPulsatorTest(0.01f);
+
+		ClearRenderTargetToColor(pulseColor, 0.1f, 0.5f, renderTarget, d3dDeviceContext);
+		EndFrame(swapChain); // Flip Buffers
+		//**************END TEST*******************
+	}
+	
 	if (gResult == -1)
 	{
 		if (d3dDevice != nullptr)
@@ -148,10 +175,6 @@ int nCmdShow)
 		if (d3dDevice != nullptr)
 		{
 			swapChain->Release();
-		}
-		if (backBuffer != nullptr)
-		{
-			backBuffer->Release();
 		}
 		if (renderTarget != nullptr)
 		{
@@ -172,10 +195,6 @@ int nCmdShow)
 		if (d3dDevice != nullptr)
 		{
 			swapChain->Release();
-		}
-		if (backBuffer != nullptr)
-		{
-			backBuffer->Release();
 		}
 		if (renderTarget != nullptr)
 		{
